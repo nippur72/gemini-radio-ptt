@@ -186,7 +186,7 @@ class RadioApp {
             callback();
             return;
         }
-        this.fadeNoise(0.04);
+        this.fadeNoise(0.02);
         let time = this.audioCtx.currentTime;
         const toneDuration = 0.05;
         const numTones = 5;
@@ -277,7 +277,7 @@ class RadioApp {
                     }
                 }
                 else {
-                    this.fadeNoise(0.05);
+                    this.fadeNoise(0.025);
                 }
             }
         }, 30);
