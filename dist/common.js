@@ -86,10 +86,10 @@ class RadioApp {
     COMPRESSOR_RATIO = 10;
     // Active DSP settings
     dspConfig = {
-        bandpassEnabled: true,
-        whiteNoiseEnabled: true,
-        squelchTailEnabled: true,
-        rogerBeepEnabled: true,
+        bandpassEnabled: false,
+        whiteNoiseEnabled: false,
+        squelchTailEnabled: false,
+        rogerBeepEnabled: false,
         micLoopbackEnabled: false,
         filterMinFreq: 300,
         filterMaxFreq: 3000,

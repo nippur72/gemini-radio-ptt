@@ -101,10 +101,10 @@ class RadioApp {
 
   // Active DSP settings
   public dspConfig = {
-    bandpassEnabled: true,
-    whiteNoiseEnabled: true,
-    squelchTailEnabled: true,
-    rogerBeepEnabled: true,
+    bandpassEnabled: false,
+    whiteNoiseEnabled: false,
+    squelchTailEnabled: false,
+    rogerBeepEnabled: false,
     micLoopbackEnabled: false,
     filterMinFreq: 300,
     filterMaxFreq: 3000,

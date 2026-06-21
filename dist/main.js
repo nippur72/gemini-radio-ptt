@@ -50,10 +50,10 @@ const FILTER_MAX_FREQ = 2500;
 // ----------------------------------
 // Initial state of DSP configuration
 const dspConfig = {
-    bandpassEnabled: true,
-    whiteNoiseEnabled: true,
-    squelchTailEnabled: true,
-    rogerBeepEnabled: true,
+    bandpassEnabled: false,
+    whiteNoiseEnabled: false,
+    squelchTailEnabled: false,
+    rogerBeepEnabled: false,
     micLoopbackEnabled: false,
     filterMinFreq: FILTER_MIN_FREQ,
     filterMaxFreq: FILTER_MAX_FREQ,
