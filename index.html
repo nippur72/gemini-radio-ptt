@@ -396,6 +396,96 @@
       color: var(--text-secondary);
     }
 
+    /* Controls Panel */
+    .controls-panel {
+      background: rgba(15, 17, 21, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .panel-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .switch-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .switch-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .radio-switch {
+      background: linear-gradient(180deg, #2b303b 0%, #171a21 100%);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 4px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .radio-switch:active {
+      transform: scale(0.95);
+      background: #171a21;
+    }
+
+    .radio-switch.active {
+      border-color: rgba(59, 130, 246, 0.3);
+      box-shadow: 
+        0 0 10px rgba(59, 130, 246, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .switch-led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #334155; /* Off state */
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+
+    .radio-switch.active .switch-led {
+      background-color: #3b82f6; /* On state (blue led) */
+      box-shadow: 
+        0 0 8px #3b82f6,
+        0 0 12px #3b82f6;
+    }
+
+    .switch-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: bold;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      transition: color 0.2s ease;
+    }
+
+    .radio-switch.active .switch-label {
+      color: var(--text-primary);
+    }
+
     .encryption-status {
       color: #10b981;
     }
@@ -532,12 +622,41 @@
           </div>
         </div>
       </div>
-
-      <!-- Center Glow / Indicator Area -->
-      <div class="visualizer-area">
-        <div id="glow-ring" class="ring-idle"></div>
-        <div class="frequency-indicator">
-          <span>TX/RX MODE ACTIVE</span>
+      
+      <!-- Radio Controls Panel -->
+      <div class="controls-panel">
+        <div class="panel-title">FILTRI & EFFETTI DSP</div>
+        <div class="switch-grid">
+          <div class="switch-item">
+            <button id="toggle-filt" class="radio-switch">
+              <span class="switch-led"></span>
+              <span class="switch-label">FILT</span>
+            </button>
+          </div>
+          <div class="switch-item">
+            <button id="toggle-dist" class="radio-switch">
+              <span class="switch-led"></span>
+              <span class="switch-label">DIST</span>
+            </button>
+          </div>
+          <div class="switch-item">
+            <button id="toggle-noise" class="radio-switch">
+              <span class="switch-led"></span>
+              <span class="switch-label">NOIS</span>
+            </button>
+          </div>
+          <div class="switch-item">
+            <button id="toggle-sql" class="radio-switch">
+              <span class="switch-led"></span>
+              <span class="switch-label">SQL</span>
+            </button>
+          </div>
+          <div class="switch-item">
+            <button id="toggle-beep" class="radio-switch">
+              <span class="switch-led"></span>
+              <span class="switch-label">BEEP</span>
+            </button>
+          </div>
         </div>
       </div>
 

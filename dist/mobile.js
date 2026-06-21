@@ -16,7 +16,6 @@ La volante ha fatto un sacco di multe per divieto di sosta.`;
     const pttBtn = document.getElementById('ptt-btn');
     const statusLed = document.getElementById('status-led');
     const statusText = document.getElementById('status-text');
-    const glowRing = document.getElementById('glow-ring');
     // Helper to update segment lights on retro LED meters
     function updateLedMeter(meterId, percent) {
         const meter = document.getElementById(meterId);
@@ -46,11 +45,10 @@ La volante ha fatto un sacco di multe per divieto di sosta.`;
     };
     // Update UI states for mobile interface
     function updateUI() {
-        if (!statusLed || !statusText || !glowRing || !pttBtn)
+        if (!statusLed || !statusText || !pttBtn)
             return;
         // Clear previous states
         statusLed.className = 'led';
-        glowRing.className = '';
         const root = document.documentElement;
         // Enable/Disable PTT button based on websocket connection
         if (radio.ws && radio.ws.readyState === WebSocket.OPEN) {
@@ -62,21 +60,18 @@ La volante ha fatto un sacco di multe per divieto di sosta.`;
         if (radio.hasError) {
             statusLed.classList.add('led-error');
             statusText.textContent = radio.errorMessage;
-            glowRing.classList.add('ring-error');
             root.style.setProperty('--theme-color', 'var(--color-err)');
             root.style.setProperty('--theme-rgb', 'var(--color-err-rgb)');
         }
         else if (radio.isRecording) {
             statusLed.classList.add('led-recording');
             statusText.textContent = 'TX (TRASMISSIONE)';
-            glowRing.classList.add('ring-recording');
             root.style.setProperty('--theme-color', 'var(--color-tx)');
             root.style.setProperty('--theme-rgb', 'var(--color-tx-rgb)');
         }
         else if (radio.isPlaying) {
             statusLed.classList.add('led-speaking');
             statusText.textContent = 'RX (RICEZIONE)';
-            glowRing.classList.add('ring-speaking');
             root.style.setProperty('--theme-color', 'var(--color-rx)');
             root.style.setProperty('--theme-rgb', 'var(--color-rx-rgb)');
         }
@@ -88,7 +83,6 @@ La volante ha fatto un sacco di multe per divieto di sosta.`;
             else {
                 statusText.textContent = 'CONNESSIONE...';
             }
-            glowRing.classList.add('ring-idle');
             root.style.setProperty('--theme-color', 'var(--color-idle)');
             root.style.setProperty('--theme-rgb', 'var(--color-idle-rgb)');
         }
@@ -150,11 +144,61 @@ La volante ha fatto un sacco di multe per divieto di sosta.`;
             console.log('PTT Hybrid: Pointer left/cancelled, stopped Hold-to-Talk.');
         }
     }
+    // Helper to update active states of effects buttons in the UI
+    function updateEffectsUI() {
+        const toggles = [
+            { id: 'toggle-filt', key: 'bandpassEnabled' },
+            { id: 'toggle-dist', key: 'distortionEnabled' },
+            { id: 'toggle-noise', key: 'whiteNoiseEnabled' },
+            { id: 'toggle-sql', key: 'squelchTailEnabled' },
+            { id: 'toggle-beep', key: 'rogerBeepEnabled' },
+        ];
+        toggles.forEach(toggle => {
+            const btn = document.getElementById(toggle.id);
+            if (btn) {
+                if (radio.dspConfig[toggle.key]) {
+                    btn.classList.add('active');
+                }
+                else {
+                    btn.classList.remove('active');
+                }
+            }
+        });
+    }
+    // Setup click listeners for effect toggle buttons
+    function setupEffectsControls() {
+        const toggles = [
+            { id: 'toggle-filt', key: 'bandpassEnabled' },
+            { id: 'toggle-dist', key: 'distortionEnabled' },
+            { id: 'toggle-noise', key: 'whiteNoiseEnabled' },
+            { id: 'toggle-sql', key: 'squelchTailEnabled' },
+            { id: 'toggle-beep', key: 'rogerBeepEnabled' },
+        ];
+        toggles.forEach(toggle => {
+            const btn = document.getElementById(toggle.id);
+            if (btn) {
+                btn.addEventListener('click', async () => {
+                    // Initialize AudioContext if not already done, so settings can be applied to nodes
+                    await radio.initAudio();
+                    // Toggle setting
+                    radio.dspConfig[toggle.key] = !radio.dspConfig[toggle.key];
+                    // Apply changes to nodes
+                    radio.updateAudioSettings();
+                    // Update UI styles
+                    updateEffectsUI();
+                });
+            }
+        });
+        // Initial sync
+        updateEffectsUI();
+    }
     // Register Unified Pointer Events
     pttBtn.addEventListener('pointerdown', handlePressStart);
     pttBtn.addEventListener('pointerup', handlePressEnd);
     pttBtn.addEventListener('pointercancel', handlePointerCancelOrLeave);
     pttBtn.addEventListener('pointerleave', handlePointerCancelOrLeave);
+    // Setup effects controls
+    setupEffectsControls();
     // Main initialization
     async function main() {
         const params = new URLSearchParams(window.location.search);

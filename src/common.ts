@@ -100,8 +100,19 @@ class RadioApp {
   public COMPRESSOR_RATIO = 10;
 
   // Active DSP settings
-  public dspConfig = {
+  public dspConfig: {
+    bandpassEnabled: boolean;
+    distortionEnabled: boolean;
+    whiteNoiseEnabled: boolean;
+    squelchTailEnabled: boolean;
+    rogerBeepEnabled: boolean;
+    micLoopbackEnabled: boolean;
+    filterMinFreq: number;
+    filterMaxFreq: number;
+    [key: string]: any;
+  } = {
     bandpassEnabled: false,
+    distortionEnabled: false,
     whiteNoiseEnabled: false,
     squelchTailEnabled: false,
     rogerBeepEnabled: false,
@@ -129,12 +140,10 @@ class RadioApp {
 
     // Create Distortion Node (WaveShaper)
     this.distortionNode = this.audioCtx.createWaveShaper();
-    this.distortionNode.curve = makeDistortionCurve(this.DISTORTION_AMOUNT) as any;
     this.distortionNode.oversample = '4x';
 
     // Create Bandpass filter
     this.bandpassNode = this.audioCtx.createBiquadFilter();
-    this.bandpassNode.type = 'bandpass';
     const minFreq = this.dspConfig.filterMinFreq ?? this.FALLBACK_FILTER_MIN_FREQ;
     const maxFreq = this.dspConfig.filterMaxFreq ?? this.FALLBACK_FILTER_MAX_FREQ;
     const centerFrequency = Math.sqrt(minFreq * maxFreq);
@@ -160,6 +169,9 @@ class RadioApp {
 
     // Initialize white noise
     this.initWhiteNoise();
+
+    // Apply initial settings
+    this.updateAudioSettings();
   }
 
   private initWhiteNoise() {
@@ -200,10 +212,47 @@ class RadioApp {
     this.noiseGainNode.gain.setTargetAtTime(targetVolume, this.audioCtx.currentTime, 0.04);
   }
 
+  public updateAudioSettings() {
+    if (!this.audioCtx) return;
+
+    // Apply distortion setting
+    if (this.distortionNode) {
+      if (this.dspConfig.distortionEnabled) {
+        this.distortionNode.curve = makeDistortionCurve(this.DISTORTION_AMOUNT) as any;
+      } else {
+        this.distortionNode.curve = null;
+      }
+    }
+
+    // Apply bandpass setting
+    if (this.bandpassNode) {
+      if (this.dspConfig.bandpassEnabled) {
+        this.bandpassNode.type = 'bandpass';
+      } else {
+        this.bandpassNode.type = 'allpass';
+      }
+    }
+
+    // Apply loopback gain dynamically
+    if (this.micLoopbackGainNode) {
+      this.micLoopbackGainNode.gain.setValueAtTime(
+        this.dspConfig.micLoopbackEnabled ? 1.0 : 0.0,
+        this.audioCtx.currentTime
+      );
+    }
+
+    // If noise is turned off mid-speech, stop it instantly
+    if (!this.dspConfig.whiteNoiseEnabled) {
+      this.fadeNoise(0);
+    } else if (this.isPlaying) {
+      this.fadeNoise(0.05);
+    }
+  }
+
   public connectToDestination(source: AudioNode) {
     if (!this.audioCtx) return;
 
-    if (this.dspConfig.bandpassEnabled && this.distortionNode) {
+    if (this.distortionNode) {
       source.connect(this.distortionNode);
     } else if (this.rxAnalyser) {
       source.connect(this.rxAnalyser);

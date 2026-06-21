@@ -52,25 +52,8 @@
     // Handle config updates from main process tray menu
     window.api.onConfigUpdate((newConfig) => {
         console.log('DSP Config updated in renderer:', newConfig);
-        const bandpassChanged = newConfig.bandpassEnabled !== undefined &&
-            newConfig.bandpassEnabled !== radio.dspConfig.bandpassEnabled;
         radio.dspConfig = { ...radio.dspConfig, ...newConfig };
-        // Update noise routing if bandpass setting is toggled
-        if (bandpassChanged && radio.noiseGainNode) {
-            radio.noiseGainNode.disconnect();
-            radio.connectToDestination(radio.noiseGainNode);
-        }
-        // Update loopback gain dynamically
-        if (radio.micLoopbackGainNode && radio.audioCtx) {
-            radio.micLoopbackGainNode.gain.setValueAtTime(radio.dspConfig.micLoopbackEnabled ? 1.0 : 0.0, radio.audioCtx.currentTime);
-        }
-        // If noise is turned off mid-speech, stop it instantly
-        if (!radio.dspConfig.whiteNoiseEnabled) {
-            radio.fadeNoise(0);
-        }
-        else if (radio.isPlaying) {
-            radio.fadeNoise(0.05);
-        }
+        radio.updateAudioSettings();
     });
     // Initialize on load
     async function main() {

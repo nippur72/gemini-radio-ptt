@@ -20,6 +20,7 @@ const FILTER_MAX_FREQ = 2500;
 // Initial state of DSP configuration
 const dspConfig = {
   bandpassEnabled: false,
+  distortionEnabled: false,
   whiteNoiseEnabled: false,
   squelchTailEnabled: false,
   rogerBeepEnabled: false,
@@ -133,6 +134,15 @@ function updateTrayMenu() {
       checked: dspConfig.bandpassEnabled,
       click: (item) => {
         dspConfig.bandpassEnabled = item.checked;
+        sendConfigToRenderer();
+      },
+    },
+    {
+      label: 'Distortion (WaveShaper)',
+      type: 'checkbox',
+      checked: dspConfig.distortionEnabled,
+      click: (item) => {
+        dspConfig.distortionEnabled = item.checked;
         sendConfigToRenderer();
       },
     },
