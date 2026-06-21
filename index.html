@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gemini Radio PTT - Mobile Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    /* Custom variables for military tactical theme */
+    :root {
+      --bg-dark: #0f1115;
+      --bg-panel: rgba(22, 28, 36, 0.7);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      
+      /* Status Colors */
+      --color-idle: #e2e8f0;
+      --color-idle-rgb: 226, 232, 240;
+      
+      --color-tx: #ef4444;
+      --color-tx-rgb: 239, 68, 68;
+      
+      --color-rx: #10b981;
+      --color-rx-rgb: 16, 185, 129;
+      
+      --color-err: #f59e0b;
+      --color-err-rgb: 245, 158, 11;
+      
+      /* Active Theme (defaults to idle) */
+      --theme-color: var(--color-idle);
+      --theme-rgb: var(--color-idle-rgb);
+    }
+
+    /* Reset and general */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-primary);
+    }
+
+    /* Fullscreen mobile container */
+    .mobile-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      justify-content: space-between;
+      background: radial-gradient(circle at center, #1b202c 0%, var(--bg-dark) 100%);
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Header style */
+    .radio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px 16px 4px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .radio-header .brand {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #3b82f6;
+      text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    }
+
+    .radio-header .model-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+    }
+
+    /* Content Area */
+    .radio-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+      padding: 24px 0;
+    }
+
+    /* Display Panel (Tactical glass screen) */
+    .display-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+    }
+
+    .display-status {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .led-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+    }
+
+    .led {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      box-shadow: 0 0 8px currentColor;
+      transition: all 0.3s ease;
+    }
+
+    /* LED state colors */
+    .led-idle { color: var(--color-idle); background-color: var(--color-idle); }
+    .led-recording { color: var(--color-tx); background-color: var(--color-tx); box-shadow: 0 0 15px var(--color-tx); }
+    .led-speaking { color: var(--color-rx); background-color: var(--color-rx); box-shadow: 0 0 15px var(--color-rx); }
+    .led-error { color: var(--color-err); background-color: var(--color-err); box-shadow: 0 0 15px var(--color-err); }
+
+    .status-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-meta .label {
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .status-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: color 0.3s ease;
+    }
+
+    /* Retro LED Volume Meters */
+    .meters-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .meter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meter-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .speaker-icon, .mic-icon {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .led-meter {
+      display: flex;
+      gap: 4px;
+      width: 100%;
+      height: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .led-segment {
+      flex: 1;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.03); /* Unlit segment */
+      border-radius: 1px;
+      transition: background-color 0.05s ease, box-shadow 0.05s ease;
+    }
+
+    /* Green segments (1-6) */
+    .led-segment.lit:nth-child(-n+6) {
+      background-color: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+
+    /* Yellow segments (7-9) */
+    .led-segment.lit:nth-child(n+7):nth-child(-n+9) {
+      background-color: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 17, 0.6);
+    }
+
+    /* Red segment (10) */
+    .led-segment.lit:nth-child(10) {
+      background-color: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+    }
+
+    /* Center Visualizer/Glow area */
+    .visualizer-area {
+      display: flex;
+      position: relative;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+    }
+
+    #glow-ring {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 2px solid rgba(var(--theme-rgb), 0.1);
+      box-shadow: 0 0 30px rgba(var(--theme-rgb), 0.05);
+      position: absolute;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Pulsing visual cues for active state */
+    .ring-recording {
+      border-color: rgba(var(--color-tx-rgb), 0.4);
+      box-shadow: 0 0 50px rgba(var(--color-tx-rgb), 0.25);
+      animation: pulse-ring 1.5s infinite;
+    }
+
+    .ring-speaking {
+      border-color: rgba(var(--color-rx-rgb), 0.4);
+      box-shadow: 0 0 50px rgba(var(--color-rx-rgb), 0.25);
+      animation: pulse-ring 1.5s infinite;
+    }
+
+    .ring-error {
+      border-color: rgba(var(--color-err-rgb), 0.4);
+      box-shadow: 0 0 40px rgba(var(--color-err-rgb), 0.2);
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 0.4;
+      }
+      100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+      }
+    }
+
+    .frequency-indicator {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      z-index: 2;
+      letter-spacing: 1px;
+    }
+
+    /* PTT Button Styling */
+    .ptt-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px 0;
+    }
+
+    .ptt-button {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #2b303b 0%, #171a21 100%);
+      box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.6),
+        inset 0 2px 3px rgba(255, 255, 255, 0.1),
+        0 0 0 8px rgba(255, 255, 255, 0.02);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      outline: none;
+      touch-action: none; /* Prevent browser scrolling on drag/longpress */
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .ptt-button::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 50%;
+      padding: 4px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .ptt-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .ptt-inner {
+      width: 146px;
+      height: 146px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #3a4150 0%, #1e232d 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: 
+        inset 0 4px 6px rgba(0, 0, 0, 0.4),
+        0 2px 2px rgba(255, 255, 255, 0.05);
+      transition: all 0.15s ease;
+    }
+
+    /* Visual reactions when pressing PTT */
+    .ptt-button:active:not(:disabled),
+    .ptt-button.active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.8),
+        inset 0 1px 2px rgba(255, 255, 255, 0.05),
+        0 0 20px rgba(var(--color-tx-rgb), 0.2);
+    }
+
+    .ptt-button:active:not(:disabled) .ptt-inner,
+    .ptt-button.active:not(:disabled) .ptt-inner {
+      background: radial-gradient(circle, rgba(var(--color-tx-rgb), 0.4) 0%, #1e232d 100%);
+    }
+
+    .ptt-label {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .ptt-sublabel {
+      font-size: 0.55rem;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* Footer displays */
+    .radio-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 4px 4px 4px;
+      border-top: 1px solid var(--border-color);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    .encryption-status {
+      color: #10b981;
+    }
+
+    /* Error Screen Styling */
+    #error-screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 17, 21, 0.95);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .error-card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      max-width: 380px;
+    }
+
+    .error-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .error-card h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--color-err);
+      margin-bottom: 12px;
+    }
+
+    .error-card p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      color: #fbbf24;
+      word-break: break-all;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    <!-- Header -->
+    <header class="radio-header">
+      <div class="brand">MIL-RADIO</div>
+      <div class="model-badge">GEMINI-LIVE-V1</div>
+    </header>
+
+    <!-- Error Screen (Shown when apiKey is missing) -->
+    <div id="error-screen" class="hidden">
+      <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <h2>Chiave API Mancante</h2>
+        <p>Per avviare la demo sul tuo smartphone, aggiungi la chiave API di Gemini all'URL in questo modo:</p>
+        <div class="code-block">
+          <code>index.html?apiKey=LA_TUA_CHIAVE</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Radio Screen -->
+    <div id="radio-screen" class="radio-content">
+      <!-- Status Display (Glassmorphic panel resembling a tactical screen) -->
+      <div class="display-panel">
+        <div class="display-status">
+          <div class="led-container">
+            <span id="status-led" class="led led-idle"></span>
+          </div>
+          <div class="status-meta">
+            <span class="label">STATO CANALE:</span>
+            <span id="status-text" class="status-value">CONNESSIONE...</span>
+          </div>
+        </div>
+
+        <!-- Retro LED Volume Meters -->
+        <div class="meters-container">
+          <div class="meter-group">
+            <div class="meter-header">
+              <span class="mic-icon">🎤</span>
+              <span class="meter-label">TX - TRASMISSIONE</span>
+            </div>
+            <div class="led-meter" id="tx-led-meter">
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+            </div>
+          </div>
+          <div class="meter-group">
+            <div class="meter-header">
+              <span class="speaker-icon">🔊</span>
+              <span class="meter-label">RX - RICEZIONE</span>
+            </div>
+            <div class="led-meter" id="rx-led-meter">
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+              <div class="led-segment"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Glow / Indicator Area -->
+      <div class="visualizer-area">
+        <div id="glow-ring" class="ring-idle"></div>
+        <div class="frequency-indicator">
+          <span>TX/RX MODE ACTIVE</span>
+        </div>
+      </div>
+
+      <!-- Large PTT Button Area -->
+      <div class="ptt-container">
+        <button id="ptt-btn" class="ptt-button" disabled>
+          <div class="ptt-inner">
+            <span class="ptt-label">PUSH TO TALK</span>
+            <span class="ptt-sublabel">TIENI PREMUTO O TOCCA</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Info/Help footer -->
+      <footer class="radio-footer">
+        <div class="freq-display">CH 16 - 156.800 MHz</div>
+        <div class="encryption-status">SECURE VOICE // DISPATCHER</div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="dist/common.js"></script>
+  <script src="dist/mobile.js"></script>
+</body>
+</html>

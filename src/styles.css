@@ -1,0 +1,203 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  background-color: transparent;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#state-box {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(8px);
+}
+
+#state-box:active {
+  cursor: grabbing;
+}
+
+/* Close button - visible only on hover */
+#close-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  line-height: 14px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.2s, background-color 0.2s;
+  z-index: 10;
+}
+
+#state-box:hover #close-btn {
+  opacity: 1;
+}
+
+#close-btn:hover {
+  background-color: rgba(231, 76, 60, 0.9);
+  color: white;
+}
+
+/* Status label style */
+#status-label {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* Glow ring for recording and speaking animations */
+#glow-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* 1. IDLE STATE */
+.state-idle {
+  background-color: rgba(24, 28, 36, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: rgba(149, 165, 166, 0.7);
+}
+
+.state-idle #status-label {
+  color: rgba(149, 165, 166, 0.7);
+}
+
+/* 2. RECORDING (TRANSMITTING) STATE */
+.state-recording {
+  background-color: rgba(231, 76, 60, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 16px rgba(231, 76, 60, 0.7);
+  color: white;
+}
+
+.state-recording #status-label {
+  color: white;
+}
+
+.state-recording #glow-ring {
+  opacity: 1;
+  border: 1.5px solid rgba(231, 76, 60, 0.8);
+  animation: pulse-red 1.5s infinite;
+}
+
+/* 3. SPEAKING (RECEIVING) STATE */
+.state-speaking {
+  background-color: rgba(46, 204, 113, 0.9); /* Tactical Green */
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 16px rgba(46, 204, 113, 0.7);
+  color: white;
+}
+
+.state-speaking #status-label {
+  color: white;
+}
+
+.state-speaking #glow-ring {
+  opacity: 1;
+  border: 1.5px solid rgba(46, 204, 113, 0.8);
+  animation: pulse-green 1.2s infinite;
+}
+
+/* 4. ERROR STATE */
+.state-error {
+  background-color: rgba(241, 196, 15, 0.9); /* Warning Yellow/Amber */
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
+  color: #2c3e50;
+}
+
+.state-error #status-label {
+  color: #2c3e50;
+}
+
+/* Animations */
+@keyframes pulse-red {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+#volume-container {
+  width: 44px;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 1.5px;
+  margin-top: 5px;
+  overflow: hidden;
+  display: none;
+}
+
+#volume-bar {
+  width: 0%;
+  height: 100%;
+  background-color: #55ff55;
+  border-radius: 1.5px;
+  transition: width 0.04s ease;
+}
+
+.state-recording #volume-container {
+  display: block;
+}

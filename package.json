@@ -1,0 +1,34 @@
+{
+  "name": "gemini-radio-ptt",
+  "version": "1.0.0",
+  "description": "Custom Gemini Live API client with push-to-talk and military radio effects",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "tsc && electron .",
+    "mobile": "npx http-server -p 8080"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-global-key-listener": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "electron": "^31.7.7",
+    "http-server": "^14.1.1",
+    "typescript": "^5.5.2"
+  },
+  "keywords": [
+    "electron",
+    "typescript",
+    "gemini",
+    "multimodal",
+    "live",
+    "api",
+    "push-to-talk",
+    "dsp"
+  ],
+  "author": "Antigravity",
+  "license": "MIT"
+}
