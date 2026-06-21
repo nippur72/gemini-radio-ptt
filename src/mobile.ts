@@ -5,7 +5,7 @@ interface Window {
 (() => {
   // Hardcoded configurations for Mobile Demo
   const MODEL = 'gemini-3.1-flash-live-preview';
-  const VOICE = 'Charon';
+  const VOICE = 'Kore';
   const SYSTEM_INSTRUCTION = `Sei un operatore radio del Comando di Polizia Locale Vigili Urbani di Reggio Calabria.
 Nome in codice "Volante 1" agente Cacciapuoti Vincenzo detto Cecè.
 Comunica solo in italiano, stile walkie-talkie.
@@ -184,8 +184,21 @@ La volante ha fatto un sacco di multe per divieto di sosta.`;
       errorScreen?.classList.add('hidden');
       radioScreen?.classList.remove('hidden');
 
+      let systemInstruction = SYSTEM_INSTRUCTION;
+      try {
+        const response = await fetch('system_instruction.txt');
+        if (response.ok) {
+          systemInstruction = (await response.text()).trim();
+          console.log('Loaded system instruction from system_instruction.txt');
+        } else {
+          console.warn('Failed to load system_instruction.txt, response status:', response.status);
+        }
+      } catch (err) {
+        console.error('Failed to fetch system_instruction.txt:', err);
+      }
+
       // Connect to the WebSocket using query string apiKey and fallback configs
-      await radio.initWebSocket(apiKey, MODEL, VOICE, SYSTEM_INSTRUCTION);
+      await radio.initWebSocket(apiKey, MODEL, VOICE, systemInstruction);
     }
   }
 

@@ -216,22 +216,20 @@ electron_1.ipcMain.handle('get-config', () => {
     return dspConfig;
 });
 electron_1.ipcMain.handle('get-env', () => {
-    let systemInstruction = process.env.GEMINI_SYSTEM_INSTRUCTION || '';
-    if (!systemInstruction) {
-        try {
-            const promptPath = path.join(__dirname, '../system_instruction.txt');
-            if (fs.existsSync(promptPath)) {
-                systemInstruction = fs.readFileSync(promptPath, 'utf-8').trim();
-            }
+    let systemInstruction = '';
+    try {
+        const promptPath = path.join(__dirname, '../system_instruction.txt');
+        if (fs.existsSync(promptPath)) {
+            systemInstruction = fs.readFileSync(promptPath, 'utf-8').trim();
         }
-        catch (err) {
-            console.error('Failed to read system_instruction.txt:', err);
-        }
+    }
+    catch (err) {
+        console.error('Failed to read system_instruction.txt:', err);
     }
     return {
         apiKey: process.env.GEMINI_API_KEY || '',
         model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp',
-        voice: process.env.GEMINI_VOICE || 'Charon',
+        voice: process.env.GEMINI_VOICE || 'Kore',
         systemInstruction,
     };
 });
